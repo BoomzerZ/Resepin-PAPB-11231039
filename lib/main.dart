@@ -1,35 +1,24 @@
-import 'package:flutter/material.dart';
+import 'app/app.dart';
+import 'app/orientation_config.dart';
+
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+
 import 'controllers/favorite_controller.dart';
 import 'controllers/meals_controller.dart';
-import 'models/meal.dart';
-import 'pages/detail_resep_page.dart';
-import 'pages/favorit_page.dart';
-import 'pages/home_page.dart';
-import 'pages/pencarian_page.dart';
-import 'services/mealdb_service.dart';
+import 'controllers/schedule_controller.dart';
+import 'repositories/favorite_repository.dart';
+import 'repositories/recipe_repository.dart';
+import 'repositories/schedule_repository.dart';
 
-void main() {
-  Get.put(MealDbService());
-  Get.put(MealsController(Get.find<MealDbService>()), permanent: true);
-  Get.put(FavoriteController(), permanent: true);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await OrientationConfig.setPortrait();
+  Get.put(RecipeRepository(), permanent: true);
+  Get.put(FavoriteRepository(), permanent: true);
+  Get.put(ScheduleRepository(), permanent: true);
+  Get.put(MealsController(Get.find<RecipeRepository>()), permanent: true);
+  Get.put(FavoriteController(Get.find<FavoriteRepository>()), permanent: true);
+  Get.put(ScheduleController(Get.find<ScheduleRepository>()), permanent: true);
   runApp(const ResepinApp());
-}
-
-class ResepinApp extends StatelessWidget {
-  const ResepinApp({super.key});
-
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    title: 'Resepin',
-    theme: ThemeData(fontFamily: 'Arial', scaffoldBackgroundColor: const Color(0xFFFFFBF5)),
-    initialRoute: '/',
-    routes: {
-      '/': (_) => const ResepinHomePage(),
-      '/pencarian': (_) => const PencarianPage(),
-      '/favorit': (_) => const FavoritPage(),
-      '/detail': (context) => DetailResepPage(meal: ModalRoute.of(context)!.settings.arguments as Meal),
-    },
-  );
 }

@@ -1,32 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../app/app_routes.dart';
 import '../controllers/favorite_controller.dart';
 import '../models/meal.dart';
 
 class RecipeCard extends StatelessWidget {
-  const RecipeCard({super.key, required this.meal, this.width = 225});
+  const RecipeCard({super.key, required this.meal, this.compact = false});
+
   final Meal meal;
-  final double width;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final favorites = Get.find<FavoriteController>();
-    favorites.remember(meal);
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/detail', arguments: meal),
-      child: Container(
-        width: width,
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(17), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .06), blurRadius: 8, offset: const Offset(0, 3))]),
+    return InkWell(
+      onTap: () =>
+          Navigator.pushNamed(context, AppRoutes.detail, arguments: meal),
+      borderRadius: BorderRadius.circular(17),
+      child: Card(
         clipBehavior: Clip.antiAlias,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(height: width == 225 ? 150 : 100, child: Stack(fit: StackFit.expand, children: [
-            Image.network(meal.thumbnail, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFFFFE3C4), child: Icon(Icons.restaurant, color: Color(0xFF4A2C1A))),),
-            Positioned(right: 10, top: 10, child: Obx(() => Material(color: Colors.white, shape: const CircleBorder(), child: IconButton(tooltip: favorites.isFavorite(meal.id) ? 'Hapus dari favorit' : 'Tambah ke favorit', onPressed: () => favorites.toggle(meal), icon: Icon(favorites.isFavorite(meal.id) ? Icons.favorite : Icons.favorite_border, color: const Color(0xFF4A2C1A), size: 20), constraints: const BoxConstraints.tightFor(width: 36, height: 36), padding: EdgeInsets.zero)))),
-          ])),
-          Padding(padding: const EdgeInsets.fromLTRB(12, 8, 10, 2), child: Text(meal.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF211A15), fontSize: 15, fontWeight: FontWeight.bold))),
-          Padding(padding: const EdgeInsets.fromLTRB(12, 3, 10, 0), child: Text(meal.category ?? 'Lihat bahan dan instruksi', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black54, fontSize: 12))),
-        ]),
+        color: Colors.white,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
+        child: compact
+            ? Row(
+                children: [
+                  _image(100),
+                  Expanded(child: _text()),
+                  _favorite(favorites),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _image(double.infinity),
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: _favorite(favorites),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+                    child: _text(),
+                  ),
+                ],
+              ),
       ),
     );
   }
+
+  Widget _image(double width) => Image.network(
+    meal.thumbnail,
+    width: width,
+    fit: BoxFit.cover,
+    errorBuilder: (_, __, ___) => const ColoredBox(
+      color: Color(0xFFFFE3C4),
+      child: Icon(Icons.restaurant, color: Color(0xFF4A2C1A)),
+    ),
+  );
+
+  Widget _text() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        meal.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF211A15),
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        meal.category,
+        style: const TextStyle(color: Color(0xFFF39A22), fontSize: 12),
+      ),
+    ],
+  );
+
+  Widget _favorite(FavoriteController controller) => Obx(
+    () => IconButton(
+      onPressed: () => controller.toggle(meal),
+      icon: Icon(
+        controller.isFavorite(meal.id) ? Icons.favorite : Icons.favorite_border,
+        color: const Color(0xFF4A2C1A),
+      ),
+    ),
+  );
 }
